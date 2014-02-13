@@ -10,7 +10,7 @@
 # repo_logfile = None
 # save_logfile = None
 # no_parse = False
-# gitref = master
+# gitref = 'master'
 #
 ## Database parameters
 # db_driver = 'mysql'
