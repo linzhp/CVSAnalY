@@ -40,6 +40,7 @@ from xml.sax import handler as xmlhandler, make_parser
 from signal import SIGTERM
 import os
 import re
+from plyj.model import Visitor
 
 
 class ProgramNotFound(Extension):
@@ -953,6 +954,49 @@ class Metrics(Extension):
         cnn.close()
 
         profiler_stop("Running Metrics extension", delete=True)
+
+class JavaComplexityCalculator(Visitor):
+    """
+    An AST visitor. Count McCabe's cyclomatic complexity using the algorithm in:
+    http://www.leepoint.net/notes-java/principles_and_practices/complexity/complexity-java-method.html
+    """
+    def __init__(self):
+        super(JavaComplexityCalculator, self).__init__()
+        self._mccabe_values = []
+
+    @property
+    def mccabe_values(self):
+        return self._mccabe_values
+
+    def visit_ClassInitializer(self, classInitializer):
+        self._mccabe_values.append(1)
+        return True
+
+    def visit_ConstructorDeclaration(self, constructorDeclaration):
+        self._mccabe_values.append(1)
+        return True
+
+    def visit_MethodDeclaration(self, methodDeclaration):
+        self._mccabe_values.append(1)
+        return True
+
+    def visit_Throws(self, throws):
+        self._mccabe_values[-1] += 1
+        return True
+
+    def visit_Conditional(self, conditional):
+        self._mccabe_values[-1] += 1
+        return True
+
+    def visit_IfThenElse(self, ifThenElse):
+        self._mccabe_values[-1] += 1
+        if ifThenElse.if_false is not None:
+            self._mccabe_values[-1] += 1
+        return True
+
+    def visit_While(self, whileStmt):
+        self._mccabe_values[-1] += 1
+        return True
 
 
 register_extension("Metrics", Metrics)
